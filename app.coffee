@@ -7,7 +7,7 @@ express      =  require 'express'
 app = express.createServer()
 
 # Configuration
-app.configure () ->
+app.configure ->
 	app.set 'views', "#{__dirname}/views"
 	app.set 'view engine', 'ejs'
 	app.use express.bodyParser()
@@ -18,12 +18,12 @@ app.configure () ->
 	app.use express.static "#{__dirname}/public"
 	app.use app.router
 
-app.configure 'development', () ->
+app.configure 'development', ->
 	app.use express.errorHandler
 		dumpExceptions: true
 		showStack: true
 
-app.configure 'production', () ->
+app.configure 'production', ->
 	app.use express.errorHandler()
 
 app.helpers
@@ -43,7 +43,7 @@ app.dynamicHelpers
 sockets = (require 'socket.io').listen app
 
 # Configure for heroku
-sockets.configure () ->
+sockets.configure ->
 	# Configure for heroku specifically, no websockets
 	sockets.set 'transports', ['xhr-polling']
 	sockets.set 'polling duration', 10
@@ -62,6 +62,11 @@ sockets.configure () ->
 canvas = (require './apps/canvas')
 	namespace : 'canvas'
 	socketio : sockets
+	app : app
+
+overview = (require './apps/overview')
+	namespace : 'overview'
+	canvas : canvas
 	app : app
 
 oauth = (require './apps/oauth')

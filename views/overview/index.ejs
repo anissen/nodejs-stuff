@@ -1,0 +1,33 @@
+
+<div class="page-header">
+	<h1>Canvas <small>Overview</small></h1>
+</div>
+
+<div class="row-fluid">
+	<div class="span12">
+		<div class="row-fluid">
+
+	  	<% 
+	  		var i; 
+	  		for(i in canvasData) {
+	  			var canvas = canvasData[i];
+  		%>
+
+  		<% if ((i > 0) && (i % 3 === 0)) { %>
+  			</div>
+  			<hr/>
+	  		<div class="row-fluid">
+	  	<% } %>
+
+	    <div class="span4">
+	      <h2><%= canvas.key %></h2>
+	      <span class="label label-info"><i class="icon-user"></i> Users: <%= canvas.count %></span>
+	      <span class="label label-inverse"><i class="icon-pencil icon-white"></i> Strokes: <%= canvas.strokeCount %></span>
+	      <p></p>
+	      <p><a class="btn btn-mini" href="/canvas/<%- canvas.key %>">View canvas &raquo;</a></p>
+	    </div><!--/span-->
+	    <% } %>
+
+  	</div><!--/row-->
+	</div><!--/span-->
+</div><!--/row-->

@@ -17,6 +17,7 @@ module.exports = (input) ->
 	nsio.on 'connection', userJoin                       # Run userJoin on every connection
 	setInterval cleanup, cleanupInterval                 # Run the cleanup operation every interval
 	canvases[properties.public_canvas] = new canvas()    # Prepare the public canvas automatically
+	properties.canvases = canvases
 	
 	# Configure routes
 	input.app.get "/#{properties.namespace}/#{key}", route for key, route of routes
@@ -34,7 +35,7 @@ routes =
 			newCanvasID : newCanvasID(8)
 			brushSpecs : properties.brushSpecs
 			
-		options.isPublicCanvas = if options.canvasID is properties.public_canvas then true else false
+		options.isPublicCanvas = (options.canvasID is properties.public_canvas)
 		
 		res.render 'canvas', options
 
@@ -55,7 +56,8 @@ canvas = ->
 		size
 	
 	@broadcast = (message, payload) ->
-		socket.emit(message, payload) for socketid, socket of @sockets
+		for socketid, socket of @sockets
+			socket.emit(message, payload)
 	
 	@
 
@@ -150,16 +152,19 @@ userJoin = (socket) ->
 			# Add the stroke to the canvas, and rebroadcast to
 			# everybody except the source client
 			c.strokes.push stroke
-			s.emit 'receive_stroke', stroke for socketid, s of c.sockets when s isnt socket
+			for socketid, s of c.sockets when s isnt socket
+				s.emit 'receive_stroke', stroke
 			
 			# If this is the public canvas and it has no expiry date, set one now
-			c.expires = Date.now() + canvasLifetime if canvasID is properties.public_canvas and c.expires is 0
+			if canvasID is properties.public_canvas and c.expires is 0
+				c.expires = Date.now() + canvasLifetime
 
 # Generate random strings for creating new canvases
 newCanvasID = (length) ->
 	text = ''
 	possible = 'abcdefghijkmnpqrstuvxyz0123456789'
-	text += (possible.charAt Math.floor Math.random() * possible.length) for i in [1..length]
+	for i in [1..length]
+		text += (possible.charAt Math.floor Math.random() * possible.length)
 	text
 
 # Sanitizes and verifies incoming stroke commands
