@@ -18,6 +18,7 @@ app.configure ->
 	app.use express.static "#{__dirname}/public"
 	app.use app.router
 
+# Environment-specific configuration
 app.configure 'development', ->
 	app.use express.errorHandler
 		dumpExceptions: true
@@ -26,15 +27,15 @@ app.configure 'development', ->
 app.configure 'production', ->
 	app.use express.errorHandler()
 
+# Static helpers - pre-populate css and js to avoid errors
 app.helpers
-	css : []
-	js : []
+	css: []
+	js:  []
 
+# Dynamic helpers
 app.dynamicHelpers
-	identity : (req, res) ->
-		req.session.identity ? {}
-	url : (req) ->
-		encodeURIComponent req.url
+	identity: (req, res) -> req.session.identity ? {}
+	url:      (req, res) -> encodeURIComponent req.url
 
 # #######################
 # Set up sockets
@@ -49,6 +50,7 @@ sockets.configure ->
 	sockets.set 'polling duration', 10
 	sockets.set 'log level', 1
 	sockets.set 'authorization', (handshakeData, callback) ->
+		# If there is a cookie...
 		if handshakeData.headers.cookie?
 			sid = (connectUtils.parseCookie handshakeData.headers.cookie)[conf.session_config.key]
 			conf.session_config.store.get sid, (err, session) ->
@@ -56,13 +58,13 @@ sockets.configure ->
 		callback null, true
 
 # ###########################
-# Set up experiments
+# Set up apps with namespaces
 # ###########################
 
 canvas = (require './apps/canvas')
-	namespace : 'canvas'
-	socketio : sockets
-	app : app
+	namespace: 'canvas'
+	app: app
+	socketio: sockets
 
 overview = (require './apps/overview')
 	namespace : 'overview'
