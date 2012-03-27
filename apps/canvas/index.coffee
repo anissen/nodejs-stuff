@@ -183,15 +183,22 @@ saneStroke = (stroke) ->
 	# Check the color is a valid hex
 	return false if not r.brush.color.match(/^#[0-9A-Fa-f]{6}$/)
 	# Check the size is a valid value
-	return false if r.brush.size < 0 or r.brush.size > 100
+	if brushProps.sizeMin? and r.brush.size < brushProps.sizeMin
+		return false
+	if brushProps.sizeMax? and r.brush.size > brushProps.sizeMax
+		return false
 	
 	# Check the coordinate list is not too long (10,000 elements right now)
 	return false if not Array.isArray r.coords or r.coords.length > 10000
 	
 	for i in r.coords
+		# Special "break" command is valid
+		if i is "break" then continue
+		# Otherwise it must be an array
 		return false if not Array.isArray i
 		
 		for key, val of i
+			key = parseInt key
 			if i.length > 5 or i.length < 2
 				return false
 			else if (i.length is 3 or i.length is 5) and key is i.length-1

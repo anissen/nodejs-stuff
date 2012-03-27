@@ -3,24 +3,37 @@
 		{
 			"name": "Basic",
 			"brushes": ["paint", "airbrush", "pencil"]
+		},
+		{
+			"name": "Effect Pencils",
+			"brushes": ["calligraphic-pencil"]
 		}
 	],
 	
 	"brushes": {
 		"airbrush": {
 			"niceName": "Airbrush",
+			"kind" : "primitive",
 			"canControl": ["color", "size"],
 			"sizeMin": 3,
 			"sizeMax": 50
 		},
 		"paint": {
 			"niceName": "Paint",
+			"kind" : "primitive",
 			"canControl": ["color", "size"],
 			"sizeMin": 3,
 			"sizeMax": 50
 		},
 		"pencil": {
 			"niceName": "Pencil",
+			"kind" : "line",
+			"canControl": ["color"]
+		},
+		"calligraphic-pencil": {
+			"niceName": "Calligraphic",
+			"kind" : "line",
+			"breakOnMouseUp": true,
 			"canControl": ["color"]
 		}
 	}
