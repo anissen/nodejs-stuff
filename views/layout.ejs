@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 	<head>
-		<title><%= title %> - nodejs.sargant.com</title>
+		<title><%= title %></title>
 		
 		<!-- Global stylesheets -->
 		<link rel="stylesheet" href="/bootstrap/css/bootstrap.min.css" />
@@ -27,7 +27,7 @@
 		<!-- Google Analytics -->
 		<script type="text/javascript">
 			var _gaq = _gaq || [];
-			//_gaq.push(['_setAccount', 'UA-30152761-1']);
+			_gaq.push(['_setAccount', 'UA-30425910-1']);
 			//_gaq.push(['_setDomainName', 'sargant.com']);
 			_gaq.push(['_trackPageview']);
 			(function() {
@@ -42,9 +42,10 @@
 			<div class="navbar">
 				<div class="navbar-inner">
 					<div class="container">
-						<a class="brand" href="/">rob's nodejs stuff</a>
+						<a class="brand" href="/">[title]</a>
 						<ul class="nav">
 							<li><a href="/canvas">Canvas</a></li>
+							<li><a href="/snakes">Snakes on a plane</a></li>
 						</ul>
 						<ul class="nav pull-right">
 							<% if (identity.username === undefined) { %>
@@ -62,8 +63,11 @@
 			<hr>
 			<footer>
 				<p>
-					This was made by Rob Sargant (<a href="http://twitter.com/sargant">@sargant</a>)
-					and the source code is available on <a href="http://github.com/sargant/nodejs-stuff">github</a>
+					This was originally made by Rob Sargant (<a href="http://twitter.com/sargant">@sargant</a>)
+					and the source code is available on <a href="http://github.com/sargant/nodejs-stuff">github</a>.
+				</p>
+				<p>
+					It has since been bastardized by Anders Nissen (<a href="http://twitter.com/andershnissen">@andershnissen</a>) and is also on <a href="http://github.com/anissen">github</a>.
 				</p>
 			</footer>
 		</div>
