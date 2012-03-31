@@ -71,6 +71,11 @@ overview = (require './apps/overview')
 	canvas : canvas
 	app : app
 
+canvas = (require './apps/snakes')
+	namespace: 'snakes'
+	app: app
+	socketio: sockets
+
 oauth = (require './apps/oauth')
 	namespace : 'oauth'
 	app : app
