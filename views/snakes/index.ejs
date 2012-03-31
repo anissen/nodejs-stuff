@@ -1,0 +1,66 @@
+
+<div class="page-header">
+	<h1>Snakes on a plane <small>{snakes} e <b>R</b><sup>2</sup></small></h1>
+</div>
+
+<div class="row">
+	<div class="span12">
+		<div id="canvas-unsupported" class="hide alert alert-error alert-block">
+			<h4 class="alert-heading">Oh noes!</h4>
+			<p>
+				Looks like your browser doesn't support the <strong>HTML5 &lt;canvas&gt;</strong> element. Sorry.
+			</p>
+		</div>
+		<div id="server-link-lost" class="hide alert alert-warning alert-block">
+			<h4 class="alert-heading">Techincal stuff broke</h4>
+			<p>
+				The connection to the canvas server has been lost.
+				If this box doesn't disappear soon, try refreshing the page.
+			</p>
+		</div>
+	</div>
+</div>
+
+<div class="row">
+	<div class="span8">
+		<canvas id="canvas" width="620" height="485" data-canvas-id="<%= canvasID %>"></canvas>
+		<div id="chat-history" width="620"></div>
+		<form class="form-horizontal form-narrow" id="chat-input-form">
+			<div class="control-group">
+				<label class="control-label" for="chat-input">Say:</label>
+				<div class="controls">
+					<% if (identity.username !== undefined) { %>
+						<input class="span7" id="chat-input" />
+					<% } else { %>
+						<input disabled class="span7 disabled" id="chat-input" placeholder="click &quot;log in&quot; on the top bar to chat" />
+					<% } %>
+				</div>
+			</div>
+		</form>
+	</div>
+	<div class="span4">
+		<div class="well" style="text-align: right;">
+			<!-- List of players and scores, e.g. -->
+			<h3 style="text-align: left; float: left;">Blah</h3><h3>45</h3>
+			<h3 style="text-align: left; float: left;">Anonymous 32</h3><h3>30</h3>
+			<h3 style="text-align: left; float: left;">Anonymous 16</h3><h3>15</h3>
+			<h3 style="text-align: left; float: left;">Asdf</h3><h3>10</h3>
+		</div>
+		<div class="well">
+			<p><h3 id="online-count">1 person on this canvas</h3></p>
+			<% if(isPublicCanvas) { %>
+				<p><a class="btn btn-primary btn-large" href="/canvas/<%= newCanvasID %>">Start your own canvas</a></p>
+			<% } else { %>
+				<p style="margin-left: 40px; margin-right: 40px;">
+					<a href="/canvas/<%= canvasID %>">Share this link to invite people to this canvas</a>
+				</p>
+				<p>
+					<a class="btn btn-danger" href="/canvas/">Back to public canvas</a>
+				</p>
+				<p>
+				  The contents of this canvas will be erased after 15 minutes of inactivity
+				</p>
+			<% } %>
+		</div>
+	</div>
+</div>

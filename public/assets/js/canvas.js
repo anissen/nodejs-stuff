@@ -569,7 +569,7 @@ $(function () {
 	
 		$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false})
 	}
-})
+});
 
 // case "cobweb-pencil":
 	// for(var i = 2; i < coords.length; i++) {
