@@ -7,6 +7,8 @@ var canvasUtils = new function () {
 	}
 }
 
+var players = {};
+
 ////////////////////////////////////////////////////////////////////////////////
 // Now begins the jQuery section for things that are dependent on the DOM
 ////////////////////////////////////////////////////////////////////////////////
@@ -30,7 +32,7 @@ $(function () {
 	// Socket communication event handlers and initialization
 	////////////////////////////////////////////////////////////////////////////
 	
-	var socket = io.connect('/canvas')
+	var socket = io.connect('/snakes')
 	
 	socket.on('connect', function (data) {
 		$("#server-link-lost").stop(true).slideUp()
@@ -58,7 +60,7 @@ $(function () {
 	})
 	
 	socket.on('canvas_ttl', function (percentage) {
-		console.log("Canvas TTL: " + percentage * 100 + "%");
+		//console.log("Canvas TTL: " + percentage * 100 + "%");
 	})
 	
 	socket.on('stroke_history', function (strokeHistory) {
@@ -104,4 +106,81 @@ $(function () {
 	
 		$("#chat-history").animate({ scrollTop: $("#chat-history").prop("scrollHeight") }, {queue: false})
 	}
+
+
+	// Simple way to attach js code to the canvas is by using a function
+	function processingFunctions(pjs) {
+		// Global variables
+		var radius = 50.0;
+		var X, Y;
+		var nX, nY;
+		var delay = 16;
+
+		// Setup the Processing Canvas
+		pjs.setup = function(){
+		  pjs.size(mainCanvas.element.width, mainCanvas.element.height);
+		  pjs.strokeWeight(3);
+		  pjs.frameRate(60);
+		  /*
+		  X = pjs.width / 2;
+		  Y = pjs.height / 2;
+		  nX = X;
+		  nY = Y;  
+		  */
+		}
+
+		// Main draw loop
+		pjs.draw = function() {
+		  // Fill canvas grey
+		  pjs.background(10);
+
+		  // Track circle to new destination
+		  //X += (nX - X) / delay;
+		  //Y += (nY - Y) / delay;
+
+		  radius = radius + pjs.sin(pjs.frameCount / 16) / 4;
+
+			for (i in players) {
+				var player = players[i];
+				drawPlayer(player);
+			}                
+		}
+
+		drawPlayer = function(player) {  	  
+		  // Set fill-color to blue
+		  pjs.fill(player.color.red, player.color.green, player.color.blue);
+		  
+		  // Set stroke-color white
+		  pjs.stroke(255); 
+		  
+		  // Draw circle
+		  pjs.ellipse(player.x, player.y, radius, radius);  
+		}
+
+		// Set circle's next destination
+		pjs.mouseMoved = function() {
+			//nX = pjs.mouseX;
+		  //nY = pjs.mouseY;
+		  socket.emit('move_sent', {x: pjs.mouseX, y: pjs.mouseY})
+		}
+	}
+
+	socket.on('player_joined', function (playerData) {
+		console.log('Player with id: ' + playerData.id + ' joined')
+		players[playerData.id] = playerData;
+	});
+
+	socket.on('player_left', function(playerId) {
+		delete players[playerId];
+	})
+
+	socket.on('move_received', function (moveData) { 
+		var player = players[moveData.id];
+		player.x = moveData.x;
+		player.y = moveData.y;
+	})
+
+	// attaching the sketchProc function to the canvas
+	var p = new Processing(mainCanvas.element, processingFunctions);
+	// p.exit(); to detach it
 });

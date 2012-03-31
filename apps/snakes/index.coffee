@@ -29,7 +29,7 @@ routes =
 		options = 
 			title : 'Snakes'
 			css : ['canvas.css']
-			js : ['snakes.js', '/socket.io/socket.io.js']
+			js : ['processing-api.js', 'snakes.js', '/socket.io/socket.io.js']
 			canvasID : req.params.gameid or properties.public_canvas
 			newCanvasID : newCanvasID(8)
 			
@@ -39,6 +39,7 @@ routes =
 
 # Initialize a canvas
 canvas = ->
+	@players = {}
 	@strokes = []
 	@messages = []
 	@sockets = {}
@@ -102,7 +103,7 @@ userJoin = (socket) ->
 			c.expires = 0
 		
 		# Send the stroke history and chat history to the client
-		socket.emit 'stroke_history', c.strokes
+		#socket.emit 'stroke_history', c.strokes
 		socket.emit 'chat_history', c.messages
 		# Send the client count to all sockets connected to the canvas
 		c.broadcast 'client_count', c.clientCount()
@@ -127,13 +128,26 @@ userJoin = (socket) ->
 				c.messages.push message
 				# Only maintain the 20 latest messages
 				c.messages.shift() while c.messages.length > 20
+
+		# Listen for messages received from the client, and send to everyone
+		socket.on 'move_sent', (moveData) ->		
+			id = socket.id
+			moveData.id = id
+			c.players[id].x = moveData.x
+			c.players[id].y = moveData.y
+			# Broadcast the message
+			c.broadcast 'move_received', moveData
 		
 		# Listen for disconnection and remove socket from canvas
 		socket.on 'disconnect', ->
 			delete c.sockets[socket.id]
-			# Tell all connected sockets about the updated client count
-			c.broadcast 'client_count', c.clientCount()
+			delete c.players[socket.id]
 			
+			c.broadcast 'player_left', socket.id
+
+			# Tell all connected sockets about the updated client count
+			c.broadcast 'client_count', c.clientCount() # TODO: This is redundant
+
 			# If we're on a private canvas and there's nobody left,
 			# set an expiry time for the cleanup function to monitor
 			c.expires = Date.now() + canvasLifetime if c.clientCount() < 1 and canvasID isnt properties.public_canvas
@@ -156,6 +170,25 @@ userJoin = (socket) ->
 			# set one now
 			if canvasID is properties.public_canvas and c.expires is 0
 				c.expires = Date.now() + canvasLifetime
+
+		player = 
+			id: socket.id
+			name: "Anonymous"
+			color: 
+				red: Math.floor(Math.random() * 255)
+				green: Math.floor(Math.random() * 255)
+				blue: Math.floor(Math.random() * 255)
+			x: 100
+			y: 100
+
+		c.broadcast 'player_joined', player
+
+		for p of c.players
+			console.log 'Player history: ' + p
+			socket.emit 'player_joined', c.players[p]
+
+		c.players[player.id] = player
+
 
 # Generate random strings for creating new canvases
 newCanvasID = (length) ->
