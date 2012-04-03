@@ -133,8 +133,7 @@ userJoin = (socket) ->
 		socket.on 'move_sent', (moveData) ->		
 			id = socket.id
 			moveData.id = id
-			c.players[id].x = moveData.x
-			c.players[id].y = moveData.y
+			c.players[id].direction = moveData.dir
 			# Broadcast the message
 			c.broadcast 'move_received', moveData
 		
@@ -180,11 +179,12 @@ userJoin = (socket) ->
 				blue: Math.floor(Math.random() * 255)
 			x: 100
 			y: 100
+			direction: 1
+			tail: []
 
 		c.broadcast 'player_joined', player
 
 		for p of c.players
-			console.log 'Player history: ' + p
 			socket.emit 'player_joined', c.players[p]
 
 		c.players[player.id] = player

@@ -65,49 +65,98 @@ $ ->
     ,
       queue: false
 
+
   socket.on "player_joined", (playerData) ->
-    #console.log "Player with id: " + playerData.id + " joined"
-    players[playerData.id] = playerData
+    player = players[playerData.id] = playerData
 
   socket.on "player_left", (playerId) ->
     delete players[playerId]
 
   socket.on "move_received", (moveData) ->
     player = players[moveData.id]
-    player.x = moveData.x
-    player.y = moveData.y
+    player.direction = moveData.dir
+    player.tail.push
+      x: player.x
+      y: player.y
 
 
 
   processingFunctions = (pjs) ->
-    radius = 50
-    direction = RIGHT
+    headRadius = 10
+    tailWidth = headRadius
+    direction = pjs.RIGHT
 
     pjs.setup = ->
       pjs.size mainCanvas.element.width, mainCanvas.element.height
-      pjs.strokeWeight 3
       pjs.frameRate 60
 
     pjs.draw = ->
       pjs.background 50
+      drawGrid()
       for i of players
         player = players[i]
+        updatePlayer player
         drawPlayer player
 
+    updatePlayer = (player) ->
+      switch player.direction
+        when pjs.UP    then player.y -= 1
+        when pjs.DOWN  then player.y += 1
+        when pjs.RIGHT then player.x += 1
+        when pjs.LEFT  then player.x -= 1
+
+    drawGrid = ->
+      tilesX = 12
+      tilesY = 10
+      gridSizeX = pjs.width / tilesX
+      gridSizeY = pjs.height / tilesY
+
+      pjs.noFill()
+      pjs.stroke 255, 255, 255, 20
+      pjs.strokeWeight 1
+      for x in [1..pjs.width] by gridSizeX
+        pjs.line x, 0, x, pjs.height
+      for y in [1..pjs.height] by gridSizeY
+        pjs.line 0, y, pjs.width, y
+
     drawPlayer = (player) ->
+      drawTail player
+      drawHead player
+
+    drawTail = (player) ->
+      pjs.noFill()
+      pjs.stroke player.color.red, player.color.green, player.color.blue
+      pjs.strokeWeight tailWidth
+      pjs.strokeCap pjs.ROUND
+      pjs.strokeJoin pjs.ROUND
+      pjs.beginShape()
+      pjs.vertex tailJoint.x, tailJoint.y for tailJoint in player.tail
+      pjs.vertex player.x, player.y
+      pjs.endShape()
+
+    drawHead = (player) ->
       pjs.fill player.color.red, player.color.green, player.color.blue
-      pjs.stroke 255
-      pjs.ellipse player.x, player.y, radius, radius
+      pjs.stroke player.color.red + 70, player.color.green + 70, player.color.blue + 70
+      pjs.strokeWeight 3
+      pjs.ellipse player.x, player.y, headRadius, headRadius
 
     pjs.keyPressed = ->
-      if key is CODED and keyCode != direction
-        if keyCode in [UP, DOWN, LEFT, RIGHT]
-          direction = keyCode
-          lastKeyDown = keyCode
+      # we are not interested in input other than directional keys
+      return if pjs.keyCode not in [pjs.UP, pjs.DOWN, pjs.LEFT, pjs.RIGHT]
+      # no change in direction
+      return if pjs.keyCode is direction
+      # direction cannot change 180 degrees, e.g. from left to right
+      return if pjs.keyCode is pjs.UP    and direction is pjs.DOWN
+      return if pjs.keyCode is pjs.DOWN  and direction is pjs.UP
+      return if pjs.keyCode is pjs.LEFT  and direction is pjs.RIGHT
+      return if pjs.keyCode is pjs.RIGHT and direction is pjs.LEFT
+      # we have a new proper direction
+      changeOwnDirection pjs.keyCode
 
-        # TODO: Send the direction instead of the player coordinates
-        socket.emit "move_sent",
-          x: pjs.mouseX
-          y: pjs.mouseY
+    changeOwnDirection = (playerId, newDirection) ->
+      direction = pjs.keyCode
+
+      socket.emit "move_sent",
+        dir: direction
 
   p = new Processing(mainCanvas.element, processingFunctions)
