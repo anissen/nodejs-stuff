@@ -8,6 +8,7 @@ canvases = {}               # Canvas storage
 canvasLifetime = 15*60*1000 # Delete canvases after 15 minutes
 cleanupInterval = 15*1000   # Run cleanup operation every 15 seconds
 nsio = null                 # Store the namespace-restricted sockets
+_ = null 					# Underscore reference
 
 # Experiment initialization
 module.exports = (input) -> 
@@ -20,6 +21,8 @@ module.exports = (input) ->
 	
 	# Configure routes
 	input.app.get "/#{properties.namespace}/#{key}", route for key, route of routes
+
+	_ = input.underscore
 	# Return the namespace for use elsewhere
 	properties
 
@@ -133,7 +136,10 @@ userJoin = (socket) ->
 		socket.on 'move_sent', (moveData) ->		
 			id = socket.id
 			moveData.id = id
-			c.players[id].direction = moveData.dir
+			player = c.players[id]
+
+			player.direction = moveData.dir
+			player.tail.push {x: moveData.x, y: moveData.y}
 			# Broadcast the message
 			c.broadcast 'move_received', moveData
 		
@@ -170,24 +176,48 @@ userJoin = (socket) ->
 			if canvasID is properties.public_canvas and c.expires is 0
 				c.expires = Date.now() + canvasLifetime
 
+		# Player dies
+		socket.on 'player_collided', (collidedData) ->
+			player = c.players[socket.id]
+
+			collidedData.id = player.id
+			# Broadcast the message
+			c.broadcast 'player_died', collidedData
+
+			setTimeout (() =>
+				# respawn the player
+				player.x = 50 + Math.floor(Math.random() * (620 - 100))
+				player.y = 50 + Math.floor(Math.random() * (485 - 100))
+				player.direction =  0
+				player.tail = []
+
+				c.broadcast 'player_spawned', player), 5000
+
 		player = 
 			id: socket.id
-			name: "Anonymous"
+			name: _.uniqueId 'Anonymous '
 			color: 
-				red: Math.floor(Math.random() * 255)
-				green: Math.floor(Math.random() * 255)
-				blue: Math.floor(Math.random() * 255)
-			x: 100
-			y: 100
-			direction: 1
+				red: 	55 + Math.floor(Math.random() * 200)
+				green: 	55 + Math.floor(Math.random() * 200)
+				blue: 	55 + Math.floor(Math.random() * 200)
+			x: 50 + Math.floor(Math.random() * (620 - 100))
+			y: 50 + Math.floor(Math.random() * (485 - 100))
+			direction: 0
 			tail: []
+			score: 0
 
+		# tell the new player all the existing player data
+		# TODO: Send the correct player coordinates!
+		socket.emit 'player_joined', c.players[p] for p of c.players
+
+		# add the new player to the canvas
+		c.players[player.id] = player
+
+		# tell everybody that the new player joined
 		c.broadcast 'player_joined', player
 
-		for p of c.players
-			socket.emit 'player_joined', c.players[p]
-
-		c.players[player.id] = player
+		# tell the new player his player ID and that he is ready
+		socket.emit 'you_are_ready', player.id
 
 
 # Generate random strings for creating new canvases

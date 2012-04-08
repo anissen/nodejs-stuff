@@ -2,7 +2,8 @@
 # Set up Express server
 conf         = (require './conf')()
 connectUtils = (require 'connect').utils
-express      =  require 'express'
+express      = require 'express'
+underscore   = (require 'underscore')._
 
 app = express.createServer()
 
@@ -75,6 +76,7 @@ canvas = (require './apps/snakes')
 	namespace: 'snakes'
 	app: app
 	socketio: sockets
+	underscore: underscore
 
 oauth = (require './apps/oauth')
 	namespace : 'oauth'
