@@ -1,1 +1,1 @@
-web: coffee app.coffee
+web: coffee -c -b .\public\assets\js\snakes.coffee && coffee app.coffee
