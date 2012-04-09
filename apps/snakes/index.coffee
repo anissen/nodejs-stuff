@@ -232,14 +232,11 @@ userJoin = (socket) ->
 		# tell the new player his player ID and that he is ready
 		socket.emit 'you_are_ready', player.id
 
-		###
 		synchPlayer = ->
-			console.log 'Server-side synch. request'
 			socket.emit 'synch_request'
-			setTimeout synchPlayer, 10000 # synch every ten seconds
+			setTimeout synchPlayer, 5000 # synch every five seconds
 		
-		setTimeout synchPlayer, 10000 # set initial synch after ten seconds
-		###
+		setTimeout synchPlayer, 5000 # set initial synch after five seconds
 
 
 # Generate random strings for creating new canvases

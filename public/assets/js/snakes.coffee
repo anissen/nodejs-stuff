@@ -89,8 +89,11 @@ $ ->
 
   socket.on "player_died", (collidedData) ->
     deadPlayer = players[collidedData.id]
-    killer = players[collidedData.killerId]
-    console.log deadPlayer.name + ' died at the "hands" of ' + killer.name
+    if not collidedData.killerId?
+      console.log deadPlayer.name + ' crashed into the wall'
+    else
+      killer = players[collidedData.killerId]
+      console.log deadPlayer.name + ' ran head first into ' + killer.name
     deadPlayer.dead = true
     deadPlayer.tail = []
 
@@ -109,15 +112,14 @@ $ ->
     $.extend players[playerId], data
 
   processingFunctions = (pjs) ->
-    headRadius = 15
+    headRadius = 12
     tailWidth = headRadius - 2
-    direction = 0
     moveSpeed = 2
 
     pjs.setup = ->
       pjs.size mainCanvas.element.width, mainCanvas.element.height
       pjs.smooth()
-      pjs.frameRate 60
+      pjs.frameRate 30
 
     pjs.draw = ->
       pjs.background 50
@@ -153,6 +155,9 @@ $ ->
 
     checkForCollision = ->
       return if thisPlayer.dead
+
+      collidedWithWall() if thisPlayer.x < 0 or thisPlayer.x > pjs.width or
+                            thisPlayer.y < 0 or thisPlayer.y > pjs.height
 
       for i of players
         otherPlayer = players[i]
@@ -195,6 +200,10 @@ $ ->
       pjs.line x, 0, x, pjs.height for x in [1..pjs.width] by gridSizeX
       pjs.line 0, y, pjs.width, y  for y in [1..pjs.height] by gridSizeY
 
+      pjs.stroke 255, 255, 255, 60
+      pjs.strokeWeight 5
+      pjs.rect 0, 0, pjs.width, pjs.height
+
     drawPlayer = (player) ->
       drawTail player
       drawHead player
@@ -232,21 +241,26 @@ $ ->
       pjs.text player.name, player.x, player.y - 15
 
     pjs.keyPressed = ->
+      return if not thisPlayer?
       # we are not interested in input other than directional keys
       return if pjs.keyCode not in [pjs.UP, pjs.DOWN, pjs.LEFT, pjs.RIGHT]
       # no change in direction
-      return if pjs.keyCode is direction
+      return if pjs.keyCode is thisPlayer.direction
       # direction cannot change 180 degrees, e.g. from left to right
-      return if pjs.keyCode is pjs.UP    and direction is pjs.DOWN
-      return if pjs.keyCode is pjs.DOWN  and direction is pjs.UP
-      return if pjs.keyCode is pjs.LEFT  and direction is pjs.RIGHT
-      return if pjs.keyCode is pjs.RIGHT and direction is pjs.LEFT
+      return if pjs.keyCode is pjs.UP    and thisPlayer.direction is pjs.DOWN
+      return if pjs.keyCode is pjs.DOWN  and thisPlayer.direction is pjs.UP
+      return if pjs.keyCode is pjs.LEFT  and thisPlayer.direction is pjs.RIGHT
+      return if pjs.keyCode is pjs.RIGHT and thisPlayer.direction is pjs.LEFT
+
       # we have a new proper direction
       changeOwnDirection pjs.keyCode
 
     collidedOnPlayer = (killerId) ->
       socket.emit "player_collided",
         killerId: killerId
+
+    collidedWithWall = ->
+      collidedOnPlayer null
 
     changeOwnDirection = (newDirection) ->
       socket.emit "move_sent",
