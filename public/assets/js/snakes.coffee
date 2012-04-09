@@ -79,14 +79,12 @@ $ ->
     delete players[playerId]
 
   socket.on "synch_request", ->
-    console.log 'Synch. request'
     return if not thisPlayer?
     socket.emit "synch_response",
       x: thisPlayer.x
       y: thisPlayer.y
 
   socket.on "player_synch", (playerData) ->
-    console.log 'Player synch.'
     updatePlayerData playerData.id, playerData
 
   socket.on "player_died", (collidedData) ->
@@ -234,7 +232,6 @@ $ ->
       pjs.text player.name, player.x, player.y - 15
 
     pjs.keyPressed = ->
-      console.log 'keyCode: ' + pjs.keyCode
       # we are not interested in input other than directional keys
       return if pjs.keyCode not in [pjs.UP, pjs.DOWN, pjs.LEFT, pjs.RIGHT]
       # no change in direction
