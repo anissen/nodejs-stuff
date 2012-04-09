@@ -193,6 +193,17 @@ userJoin = (socket) ->
 
 				c.broadcast 'player_spawned', player), 5000
 
+		# Player responds to synch. request
+		socket.on 'synch_response', (playerData) ->
+			player = c.players[socket.id]
+			player.x = playerData.x
+			player.y = playerData.y
+			# Broadcast the message
+			c.broadcast 'player_synch', 
+				id: socket.id
+				x: playerData.x
+				y: playerData.y
+
 		player = 
 			id: socket.id
 			name: _.uniqueId 'Anonymous '
@@ -206,8 +217,10 @@ userJoin = (socket) ->
 			tail: []
 			score: 0
 
+		# get the the players positions from the clients
+		c.broadcast 'synch_request'
+
 		# tell the new player all the existing player data
-		# TODO: Send the correct player coordinates!
 		socket.emit 'player_joined', c.players[p] for p of c.players
 
 		# add the new player to the canvas
@@ -218,6 +231,15 @@ userJoin = (socket) ->
 
 		# tell the new player his player ID and that he is ready
 		socket.emit 'you_are_ready', player.id
+
+		###
+		synchPlayer = ->
+			console.log 'Server-side synch. request'
+			socket.emit 'synch_request'
+			setTimeout synchPlayer, 10000 # synch every ten seconds
+		
+		setTimeout synchPlayer, 10000 # set initial synch after ten seconds
+		###
 
 
 # Generate random strings for creating new canvases

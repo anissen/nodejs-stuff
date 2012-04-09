@@ -74,10 +74,20 @@ $ ->
   socket.on "player_joined", (playerData) ->
     playerData.dead = false
     players[playerData.id] = playerData
-    console.log playerData
 
   socket.on "player_left", (playerId) ->
     delete players[playerId]
+
+  socket.on "synch_request", ->
+    console.log 'Synch. request'
+    return if not thisPlayer?
+    socket.emit "synch_response",
+      x: thisPlayer.x
+      y: thisPlayer.y
+
+  socket.on "player_synch", (playerData) ->
+    console.log 'Player synch.'
+    updatePlayerData playerData.id, playerData
 
   socket.on "player_died", (collidedData) ->
     deadPlayer = players[collidedData.id]
@@ -88,7 +98,7 @@ $ ->
 
   socket.on "player_spawned", (playerData) ->
     playerData.dead = false
-    $.extend players[playerData.id], playerData
+    updatePlayerData playerData.id, playerData
 
   socket.on "move_received", (moveData) ->
     player = players[moveData.id]
@@ -96,6 +106,9 @@ $ ->
     player.tail.push
       x: player.x # SHOULD be moveData.x & .y, but this comes out of synch!
       y: player.y # SHOULD be moveData.x & .y, but this comes out of synch!
+
+  updatePlayerData = (playerId, data) ->
+    $.extend players[playerId], data
 
   processingFunctions = (pjs) ->
     headRadius = 15
@@ -161,12 +174,7 @@ $ ->
     hasPointCollisionWithTail = (pointX, pointY, tail) ->
       for tailPart in tail
         if lastTailPart?
-          #pjs.stroke 0, 255, 0, 50
-          #pjs.line lastTailPart.x, lastTailPart.y, tailPart.x, tailPart.y
-          if isPointInsideTailPart pointX, pointY, lastTailPart, tailPart
-            #pjs.stroke 255, 0, 0, 100
-            #pjs.line lastTailPart.x, lastTailPart.y, tailPart.x, tailPart.y
-            return true
+          return true if isPointInsideTailPart pointX, pointY, lastTailPart, tailPart
         lastTailPart = tailPart
       return false
 
@@ -226,6 +234,7 @@ $ ->
       pjs.text player.name, player.x, player.y - 15
 
     pjs.keyPressed = ->
+      console.log 'keyCode: ' + pjs.keyCode
       # we are not interested in input other than directional keys
       return if pjs.keyCode not in [pjs.UP, pjs.DOWN, pjs.LEFT, pjs.RIGHT]
       # no change in direction
