@@ -161,7 +161,7 @@ $ ->
 
       for i of players
         otherPlayer = players[i]
-        tail = otherPlayer.tail[..]
+        tail = otherPlayer.tail[0..otherPlayer.tail.length] # Change this to [..] when CoffeeMonitor updates to 1.3.0
         if otherPlayer is thisPlayer
           # remove the last tail part to ensure that
           # the player do not hit himself when turning

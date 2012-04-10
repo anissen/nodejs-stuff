@@ -78,7 +78,7 @@ cleanup = ->
 		else
 			# If this is a private canvas, we assume there is nobody here
 			# and delete the canvas outright
-			delete canvas if canvas.expires isnt 0 and canvas.expires <= Date.now()
+			delete canvases[key] if canvas.expires isnt 0 and canvas.expires <= Date.now()
 	
 	# Broadcast the progression through the public canvas life, as a fraction in [0,1]
 	c = canvases[properties.public_canvas]
